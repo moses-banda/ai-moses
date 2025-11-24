@@ -1,0 +1,25 @@
+ai-moses/
+├── src/
+│   ├── main.py                 # Entry point
+│   ├── voice_agent.py          # Realtime API integration
+│   ├── twilio_handler.py       # Receives calls from Twilio
+│   ├── database.py             # PostgreSQL connections
+│   ├── personality_engine.py   # Your tone/vocab/behavior logic
+│   ├── caller_profiler.py      # Determine who's calling, how to respond
+│   └── status_manager.py       # Current activity updates
+├── config/
+│   ├── .env                    # API keys (OpenAI, Twilio, DB credentials)
+│   └── settings.py             # Configuration constants
+├── db/
+│   ├── schema.sql              # PostgreSQL tables
+│   └── migrations/             # Database updates
+├── training_data/
+│   ├── transcripts/            # Your voice transcripts
+│   ├── embeddings/             # Stored embeddings of your speech
+│   └── voice_samples/          # Raw audio files
+├── logs/
+│   ├── call_logs.json          # Record every call
+│   └── agent_logs.log          # Agent behavior tracking
+├── ngrok_setup.sh              # Script to expose local server
+├── requirements.txt            # Python dependencies
+└── README.md                   # Documentation
