@@ -85,14 +85,4 @@ ai-moses/
 
 **`.env.example`** (template, so others know what env vars needed):
 ```
-OPENAI_API_KEY=sk-xxx
-TWILIO_ACCOUNT_SID=ACxxx
-TWILIO_AUTH_TOKEN=xxx
-TWILIO_PHONE_NUMBER=+1XXXXXXXXXX
-DB_HOST=localhost
-DB_NAME=ai_moses
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_PORT=5432
-NGROK_AUTHTOKEN=xxx
-YOUR_NAME=moses
+
