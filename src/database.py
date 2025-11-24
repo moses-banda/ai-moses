@@ -1,36 +1,190 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os
+import sqlite3
+from datetime import datetime
 
 class Database:
-    def __init__(self):
-        self.conn = psycopg2.connect(
-            host=os.getenv('DB_HOST'),
-            database=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
-            port=os.getenv('DB_PORT')
-        )
-    
+    def __init__(self, db_path="ai_moses.db"):
+        self.db_path = db_path
+        self._create_tables()
+
+    def _connect(self):
+        return sqlite3.connect(self.db_path)
+
+    def _create_tables(self):
+        conn = self._connect()
+        c = conn.cursor()
+
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS contacts (
+                phone_number TEXT PRIMARY KEY,
+                name TEXT,
+                relationship TEXT,
+                tone TEXT,
+                topics TEXT
+            )
+        """)
+
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS status (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                activity TEXT,
+                updated_at TEXT
+            )
+        """)
+
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS call_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone_number TEXT,
+                call_sid TEXT,
+                incoming_text TEXT,
+                ai_response TEXT,
+                timestamp TEXT
+            )
+        """)
+
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS voice_recordings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone_number TEXT,
+                call_sid TEXT,
+                file_path TEXT,
+                duration REAL,
+                transcription TEXT,
+                timestamp TEXT
+            )
+        """)
+
+        conn.commit()
+        conn.close()
+
     def get_caller_profile(self, phone_number):
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(
-                "SELECT * FROM caller_profiles WHERE phone_number = %s",
-                (phone_number,)
-            )
-            return cur.fetchone() or {}
-    
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("SELECT * FROM contacts WHERE phone_number = ?", (phone_number,))
+        row = c.fetchone()
+        conn.close()
+
+        if not row:
+            return {
+                "name": "Unknown Caller",
+                "relationship": "unknown",
+                "tone": "neutral",
+                "topics": ""
+            }
+
+        return {
+            "phone_number": row[0],
+            "name": row[1],
+            "relationship": row[2],
+            "tone": row[3],
+            "topics": row[4],
+        }
+
+    def add_caller_profile(self, phone_number, name, relationship, tone, topics):
+        conn = self._connect()
+        c = conn.cursor()
+
+        try:
+            c.execute("""
+                INSERT OR REPLACE INTO contacts (phone_number, name, relationship, tone, topics)
+                VALUES (?, ?, ?, ?, ?)
+            """, (phone_number, name, relationship, tone, topics))
+
+            conn.commit()
+            return True
+        except Exception:
+            return False
+        finally:
+            conn.close()
+
+    def get_all_contacts(self):
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("SELECT * FROM contacts")
+        rows = c.fetchall()
+        conn.close()
+
+        return [
+            {
+                "phone_number": row[0],
+                "name": row[1],
+                "relationship": row[2],
+                "tone": row[3],
+                "topics": row[4]
+            }
+            for row in rows
+        ]
+
     def get_current_status(self):
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(
-                "SELECT activity, updated_at FROM status ORDER BY updated_at DESC LIMIT 1"
-            )
-            return cur.fetchone() or {'activity': 'Busy'}
-    
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("SELECT activity, updated_at FROM status ORDER BY id DESC LIMIT 1")
+        row = c.fetchone()
+        conn.close()
+
+        if not row:
+            return {"activity": "Available", "updated_at": None}
+
+        return {"activity": row[0], "updated_at": row[1]}
+
     def update_status(self, activity):
-        with self.conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO status (activity) VALUES (%s)",
-                (activity,)
-            )
-            self.conn.commit()
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("""
+            INSERT INTO status (activity, updated_at)
+            VALUES (?, ?)
+        """, (activity, datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return True
+
+    def log_call(self, phone_number, call_sid, incoming_text, ai_response):
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("""
+            INSERT INTO call_history (phone_number, call_sid, incoming_text, ai_response, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, (phone_number, call_sid, incoming_text, ai_response, datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+
+    def get_call_history(self, phone_number, limit=10):
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("""
+            SELECT call_sid, incoming_text, ai_response, timestamp
+            FROM call_history
+            WHERE phone_number = ?
+            ORDER BY id DESC
+            LIMIT ?
+        """, (phone_number, limit))
+        rows = c.fetchall()
+        conn.close()
+
+        return [
+            {
+                "call_sid": row[0],
+                "incoming_text": row[1],
+                "ai_response": row[2],
+                "timestamp": row[3]
+            }
+            for row in rows
+        ]
+
+    def add_voice_recording(self, phone_number, call_sid, file_path, duration, transcription):
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("""
+            INSERT INTO voice_recordings (phone_number, call_sid, file_path, duration, transcription, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            phone_number,
+            call_sid,
+            file_path,
+            duration,
+            transcription,
+            datetime.now().isoformat()
+        ))
+        conn.commit()
+        conn.close()
+        return True
