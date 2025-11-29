@@ -14,7 +14,7 @@ load_dotenv(dotenv_path)
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 
-from .twilio_handler import handle_incoming_call
+from .twilio_handler import handle_incoming_call, handle_incoming_sms
 from .voice_agent import VoiceAgent
 from .database import Database
 from .status_manager import StatusManager
@@ -83,6 +83,42 @@ def incoming_call():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/incoming-sms', methods=['POST'])
+def incoming_sms():
+    """Handle incoming Twilio SMS"""
+    try:
+        phone_number = request.form.get('From')
+        message_body = request.form.get('Body')
+        
+        # Get caller profile
+        caller = db.get_caller_profile(phone_number)
+        
+        # Get current status
+        current_status = db.get_current_status()
+        
+        # Generate AI response text
+        ai_response_text = voice_agent.generate_response(
+            caller_name=caller.get('name'),
+            caller_relationship=caller.get('relationship'),
+            caller_tone=caller.get('tone'),
+            status=current_status.get('activity')
+        )
+        
+        # Log the SMS (reusing log_call for now)
+        db.log_call(
+            phone_number=phone_number,
+            call_sid=request.form.get('MessageSid'),
+            incoming_text=f"[SMS] {message_body}",
+            ai_response=ai_response_text
+        )
+        
+        return handle_incoming_sms(ai_response_text)
+        
+    except Exception as e:
+        print(f"Error handling incoming SMS: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/call-status', methods=['POST'])
 def call_status():
     """Handle call status updates (completed, busy, etc)"""
@@ -92,11 +128,9 @@ def call_status():
         
         if call_status == 'completed':
             # Generate summary voice note
-            # In a real app, we would fetch the recording or transcript here
-            # For now, we'll summarize the last interaction we logged
             
             # 1. Generate Summary Text
-            summary_text = voice_agent.generate_summary("Caller called. AI responded.") # Placeholder for full transcript
+            summary_text = voice_agent.generate_summary("Caller called. AI responded.") # Placeholder
             
             # 2. Generate Summary Audio (Voice Note for Moses)
             summary_filename = f"summary_{call_sid}.mp3"
@@ -371,6 +405,7 @@ if __name__ == '__main__':
     print("\nEndpoints ready:")
     print("  ✅ /health")
     print("  ✅ /incoming-call")
+    print("  ✅ /incoming-sms")
     print("  ✅ /caller-profile/<phone>")
     print("  ✅ /add-contact")
     print("  ✅ /update-status")
