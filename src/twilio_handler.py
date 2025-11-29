@@ -1,16 +1,6 @@
 """
 Twilio Handler Module
-Handles incoming calls from Twilio
-"""
-
-# MUST load env variables FIRST
-from dotenv import load_dotenv
-import os
-
-# Load .env from config directory
-"""
-Twilio Handler Module
-Handles incoming calls from Twilio
+Handles incoming calls and SMS from Twilio
 """
 
 # MUST load env variables FIRST
@@ -22,6 +12,7 @@ dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config',
 load_dotenv(dotenv_path)
 
 from twilio.twiml.voice_response import VoiceResponse
+from twilio.twiml.messaging_response import MessagingResponse
 
 
 def handle_incoming_call(request, ai_response=None, audio_url=None):
@@ -41,18 +32,24 @@ def handle_incoming_call(request, ai_response=None, audio_url=None):
     
     response = VoiceResponse()
     
+    # If we have audio, play it; otherwise speak the text
     if audio_url:
         response.play(audio_url)
     else:
-        response.say(ai_response, voice='alice')
-        
-    # Configure status callback to trigger summary generation
-    response.record(
-        max_length=60, 
-        action='/incoming-call', 
-        method='POST',
-        recording_status_callback='/call-status',
-        recording_status_callback_event='completed'
-    )
+        # Fallback to text-to-speech with a more natural male voice
+        response.say(ai_response, voice='Polly.Matthew', language='en-US')
     
-    return str(response)
+    # End the call after the response
+    response.hangup()
+    
+    return str(response), 200, {'Content-Type': 'application/xml'}
+
+
+def handle_incoming_sms(ai_response_text):
+    """
+    Generate TwiML response for SMS
+    """
+    response = MessagingResponse()
+    response.message(ai_response_text)
+    
+    return str(response), 200, {'Content-Type': 'application/xml'}
