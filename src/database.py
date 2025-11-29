@@ -38,6 +38,8 @@ class Database:
                 call_sid TEXT,
                 incoming_text TEXT,
                 ai_response TEXT,
+                summary_text TEXT,
+                summary_audio_path TEXT,
                 timestamp TEXT
             )
         """)
@@ -148,11 +150,22 @@ class Database:
         conn.commit()
         conn.close()
 
+    def update_call_summary(self, call_sid, summary_text, summary_audio_path):
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("""
+            UPDATE call_history 
+            SET summary_text = ?, summary_audio_path = ?
+            WHERE call_sid = ?
+        """, (summary_text, summary_audio_path, call_sid))
+        conn.commit()
+        conn.close()
+
     def get_call_history(self, phone_number, limit=10):
         conn = self._connect()
         c = conn.cursor()
         c.execute("""
-            SELECT call_sid, incoming_text, ai_response, timestamp
+            SELECT call_sid, incoming_text, ai_response, timestamp, summary_text, summary_audio_path
             FROM call_history
             WHERE phone_number = ?
             ORDER BY id DESC
@@ -166,7 +179,9 @@ class Database:
                 "call_sid": row[0],
                 "incoming_text": row[1],
                 "ai_response": row[2],
-                "timestamp": row[3]
+                "timestamp": row[3],
+                "summary_text": row[4],
+                "summary_audio_path": row[5]
             }
             for row in rows
         ]
@@ -188,3 +203,28 @@ class Database:
         conn.commit()
         conn.close()
         return True
+
+    def get_recent_calls(self, limit=10):
+        conn = self._connect()
+        c = conn.cursor()
+        c.execute("""
+            SELECT phone_number, call_sid, incoming_text, ai_response, timestamp, summary_text, summary_audio_path
+            FROM call_history
+            ORDER BY id DESC
+            LIMIT ?
+        """, (limit,))
+        rows = c.fetchall()
+        conn.close()
+
+        return [
+            {
+                "phone_number": row[0],
+                "call_sid": row[1],
+                "incoming_text": row[2],
+                "ai_response": row[3],
+                "timestamp": row[4],
+                "summary_text": row[5],
+                "summary_audio_path": row[6]
+            }
+            for row in rows
+        ]

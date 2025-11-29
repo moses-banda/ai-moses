@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Moses | Voice Agent Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --border: rgba(51, 65, 85, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(4px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Status Control */
+        .status-control {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .status-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .status-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Call List */
+        .call-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .call-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .call-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .call-item {
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1rem;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .call-item:hover {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .call-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .caller-id {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .call-time {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .call-response {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            padding-left: 0.75rem;
+            border-left: 2px solid var(--border);
+        }
+
+        .call-summary {
+            background: rgba(99, 102, 241, 0.05);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            display: block;
+            font-weight: 600;
+        }
+
+        .summary-text {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 0.75rem;
+        }
+
+        audio {
+            width: 100%;
+            height: 32px;
+            border-radius: 16px;
+        }
+
+        audio::-webkit-media-controls-panel {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Test Controls */
+        .test-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: white;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+
+        .live-indicator {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">AI Moses</div>
+            <div class="status-badge">
+                <div class="status-dot live-indicator"></div>
+                <span id="system-status">System Online</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Left Column -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Status Control Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Current Status</h2>
+                    </div>
+                    <div style="margin-bottom: 2rem; text-align: center;">
+                        <h3 id="current-activity-display"
+                            style="font-size: 2.5rem; font-weight: 300; margin-bottom: 0.5rem; color: var(--text-main);">
+                            Loading...</h3>
+                        <p class="text-muted" style="color: var(--text-muted); font-size: 0.9rem;">Last updated: <span
+                                id="last-updated">Never</span></p>
+                    </div>
+                    <div class="status-control">
+                        <button class="status-btn" onclick="updateStatus('Available')">Available</button>
+                        <button class="status-btn" onclick="updateStatus('Busy')">Busy</button>
+                        <button class="status-btn" onclick="updateStatus('Driving')">Driving</button>
+                        <button class="status-btn" onclick="updateStatus('Meeting')">Meeting</button>
+                        <button class="status-btn" onclick="updateStatus('Sleeping')">Sleeping</button>
+                    </div>
+                </div>
+
+                <!-- Simulation Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Test Your Agent</h2>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Simulate an incoming
+                        call to test the AI response and voice summary.</p>
+                    <div class="test-controls">
+                        <div class="input-group">
+                            <input type="text" id="sim-name" placeholder="Caller Name (e.g. Mom)">
+                        </div>
+                        <button class="btn-primary" onclick="simulateCall()">Simulate Call</button>
+                    </div>
+                </div>
+
+                <!-- Contacts Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Known Contacts</h2>
+                    </div>
+                    <div class="contact-list" id="contact-list">
+                        <!-- Contacts will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column (Recent Calls) -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <button class="status-btn" onclick="fetchRecentCalls()"
+                        style="padding: 0.25rem 0.75rem; font-size: 0.8rem; min-width: auto;">Refresh</button>
+                </div>
+                <div class="call-list" id="call-list">
+                    <!-- Calls will be populated here -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 2rem;">No calls yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Functions
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/current-status');
+                const data = await response.json();
+
+                document.getElementById('current-activity-display').textContent = data.activity;
+                if (data.updated_at) {
+                    const date = new Date(data.updated_at);
+                    document.getElementById('last-updated').textContent = date.toLocaleTimeString();
+                }
+
+                // Update active button
+                document.querySelectorAll('.status-btn').forEach(btn => {
+                    if (btn.textContent === data.activity) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+
+        async function updateStatus(activity) {
+            try {
+                const response = await fetch('/update-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ activity }),
+                });
+
+                if (response.ok) {
+                    fetchStatus();
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
+        }
+
+        async function simulateCall() {
+            const name = document.getElementById('sim-name').value || 'Test Caller';
+            const btn = document.querySelector('.btn-primary');
+            const originalText = btn.textContent;
+
+            btn.textContent = 'Simulating...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/test/simulate-call', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone_number: '+1555010101',
+                        name: name
+                    }),
+                });
+
+                if (response.ok) {
+                    fetchRecentCalls();
+                    alert('Call simulated! Check the Recent Activity feed.');
+                }
+            } catch (error) {
+                console.error('Error simulating call:', error);
+                alert('Failed to simulate call');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function fetchRecentCalls() {
+            try {
+                const response = await fetch('/recent-calls');
+                const data = await response.json();
+                const container = document.getElementById('call-list');
+
+                if (data.calls && data.calls.length > 0) {
+                    container.innerHTML = data.calls.map(call => `
+                        <div class="call-item">
+                            <div class="call-header">
+                                <span class="caller-id">${call.phone_number}</span>
+                                <span class="call-time">${new Date(call.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="call-response">
+                                <strong>AI Response:</strong><br>
+                                "${call.ai_response}"
+                            </div>
+                            ${call.summary_text ? `
+                            <div class="call-summary">
+                                <span class="summary-label">✨ Voice Summary</span>
+                                <p class="summary-text">${call.summary_text}</p>
+                                ${call.summary_audio_path ? `
+                                <audio controls src="${call.summary_audio_path}"></audio>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No calls yet</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching calls:', error);
+            }
+        }
+
+        async function fetchContacts() {
+            try {
+                const response = await fetch('/all-contacts');
+                const data = await response.json();
+                const container = document.getElementById('contact-list');
+
+                if (data.contacts && data.contacts.length > 0) {
+                    container.innerHTML = data.contacts.map(contact => `
+                        <div style="padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="font-size: 0.95rem; margin-bottom: 0.25rem;">${contact.name}</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">${contact.phone_number}</p>
+                            </div>
+                            <span style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background: rgba(236, 72, 153, 0.1); color: var(--secondary); border-radius: 9999px;">${contact.relationship}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1rem;">No contacts saved</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching contacts:', error);
+            }
+        }
+
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStatus();
+            fetchRecentCalls();
+            fetchContacts();
+
+            // Poll for updates every 5 seconds
+            setInterval(() => {
+                fetchStatus();
+                fetchRecentCalls();
+            }, 5000);
+        });
+    </script>
+</body>
+
+</html>
