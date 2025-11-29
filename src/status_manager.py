@@ -1,13 +1,15 @@
 from src.database import Database
 from datetime import datetime
 
-db = Database()
+class StatusManager:
+    def __init__(self):
+        self.db = Database()
 
-def get_current_status():
-    """What are you doing right now?"""
-    return db.get_current_status()
+    def get_current_status(self):
+        """What are you doing right now?"""
+        return self.db.get_current_status()
 
-def update_status(activity):
-    """Set your activity"""
-    db.update_status(activity)
-    return {'status': 'updated', 'activity': activity}
+    def update_status(self, activity):
+        """Set your activity"""
+        self.db.update_status(activity)
+        return {'status': 'updated', 'activity': activity}

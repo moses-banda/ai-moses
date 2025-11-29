@@ -1,0 +1,44 @@
+[
+  {
+    "timestamp": "2024-11-23T14:32:45.123456",
+    "call_sid": "CA123456789abcdef0123456789abcdef",
+    "phone_number": "+15551234567",
+    "caller_name": "John Doe",
+    "caller_relationship": "friend",
+    "caller_tone": "casual",
+    "your_status": "In a meeting",
+    "incoming_text": "",
+    "ai_response": "Hi John, I'm currently in a meeting but will call you back soon",
+    "call_duration": 25,
+    "recording_file": "voice_recordings/CA123456789abcdef0123456789abcdef.wav",
+    "recording_duration": 25.3
+  },
+  {
+    "timestamp": "2024-11-23T14:33:13.654321",
+    "call_sid": "CA987654321fedcba9876543210fedcba",
+    "phone_number": "+15559876543",
+    "caller_name": "Sarah Johnson",
+    "caller_relationship": "sister",
+    "caller_tone": "formal",
+    "your_status": "In a meeting",
+    "incoming_text": "",
+    "ai_response": "Hello Sarah, great to hear from you. How can I help?",
+    "call_duration": 45,
+    "recording_file": "voice_recordings/CA987654321fedcba9876543210fedcba.wav",
+    "recording_duration": 45.8
+  },
+  {
+    "timestamp": "2024-11-23T14:35:31.987654",
+    "call_sid": "CA111222333444555666777888999000",
+    "phone_number": "+15551234567",
+    "caller_name": "John Doe",
+    "caller_relationship": "friend",
+    "caller_tone": "casual",
+    "your_status": "Available",
+    "incoming_text": "",
+    "ai_response": "Hey John! Good timing, I'm free now. What's up?",
+    "call_duration": 32,
+    "recording_file": "voice_recordings/CA111222333444555666777888999000.wav",
+    "recording_duration": 32.1
+  }
+]

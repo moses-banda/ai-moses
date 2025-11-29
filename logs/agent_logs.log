@@ -1,1 +1,22 @@
- 
+ 2024-11-23 14:32:15 - AI Moses Started
+2024-11-23 14:32:20 - Database connected: ai_moses.db
+2024-11-23 14:32:45 - Incoming call from +15551234567
+2024-11-23 14:32:46 - Caller: John Doe (friend, casual tone)
+2024-11-23 14:32:47 - Current status: In a meeting
+2024-11-23 14:32:48 - AI Response: "Hi John, I'm currently in a meeting but will call you back soon"
+2024-11-23 14:32:50 - Call completed (call_sid: CA123456789abcdef0123456789abcdef, duration: 25s)
+2024-11-23 14:32:50 - Voice recording saved: CA123456789abcdef0123456789abcdef.wav (25.3s)
+2024-11-23 14:33:12 - Incoming call from +15559876543
+2024-11-23 14:33:13 - Caller: Sarah Johnson (sister, formal tone)
+2024-11-23 14:33:14 - Current status: In a meeting
+2024-11-23 14:33:15 - AI Response: "Hello Sarah, great to hear from you. How can I help?"
+2024-11-23 14:33:45 - Call completed (call_sid: CA987654321fedcba9876543210fedcba, duration: 45s)
+2024-11-23 14:33:45 - Voice recording saved: CA987654321fedcba9876543210fedcba.wav (45.8s)
+2024-11-23 14:34:00 - New contact added: Mike Chen (coworker, professional tone)
+2024-11-23 14:34:15 - Status updated: Available
+2024-11-23 14:35:30 - Incoming call from +15551234567
+2024-11-23 14:35:31 - Caller: John Doe (friend, casual tone)
+2024-11-23 14:35:32 - Current status: Available
+2024-11-23 14:35:33 - AI Response: "Hey John! Good timing, I'm free now. What's up?"
+2024-11-23 14:35:55 - Call completed (call_sid: CA111222333444555666777888999000, duration: 32s)
+2024-11-23 14:35:55 - Voice recording saved: CA111222333444555666777888999000.wav (32.1s)

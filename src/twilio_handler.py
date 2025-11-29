@@ -1,46 +1,58 @@
+"""
+Twilio Handler Module
+Handles incoming calls from Twilio
+"""
+
+# MUST load env variables FIRST
+from dotenv import load_dotenv
+import os
+
+# Load .env from config directory
+"""
+Twilio Handler Module
+Handles incoming calls from Twilio
+"""
+
+# MUST load env variables FIRST
+from dotenv import load_dotenv
+import os
+
+# Load .env from config directory
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', '.env')
+load_dotenv(dotenv_path)
+
 from twilio.twiml.voice_response import VoiceResponse
-from src.database import Database
-from src.voice_agent import VoiceAgent
-from src.caller_profiler import get_caller_profile
-from src.status_manager import get_current_status
-import json
 
-db = Database()
-voice_agent = VoiceAgent()
 
-def handle_incoming_call(request):
-    """When someone calls your number"""
-    caller_phone = request.form.get('From')
+def handle_incoming_call(request, ai_response=None, audio_url=None):
+    """
+    Handle incoming Twilio call
     
-    # Get caller info from DB
-    caller_profile = get_caller_profile(caller_phone)
+    Args:
+        request: Flask request object
+        ai_response: AI generated response text
+        audio_url: URL to generated audio file (optional)
+        
+    Returns:
+        TwiML response for Twilio
+    """
+    if ai_response is None:
+        ai_response = "Hello, I'm currently unavailable. Please leave a message."
     
-    # Get your current status
-    current_status = get_current_status()
+    response = VoiceResponse()
     
-    # Generate personalized response
-    response_text = voice_agent.generate_response(
-        caller_name=caller_profile.get('name'),
-        caller_history=caller_profile.get('usual_topics'),
-        current_status=current_status.get('activity')
+    if audio_url:
+        response.play(audio_url)
+    else:
+        response.say(ai_response, voice='alice')
+        
+    # Configure status callback to trigger summary generation
+    response.record(
+        max_length=60, 
+        action='/incoming-call', 
+        method='POST',
+        recording_status_callback='/call-status',
+        recording_status_callback_event='completed'
     )
     
-    # Create Twilio response (text-to-speech)
-    response = VoiceResponse()
-    response.say(response_text, voice='alice')  # Or your custom voice
-    
-    # Log the call
-    log_call(caller_phone, caller_profile.get('name'), response_text)
-    
     return str(response)
-
-def log_call(phone, name, transcript):
-    """Record call in logs"""
-    with open('logs/call_logs.json', 'a') as f:
-        json.dump({
-            'phone': phone,
-            'name': name,
-            'transcript': transcript,
-            'timestamp': str(datetime.now())
-        }, f)
-        f.write('\n')
